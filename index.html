@@ -431,13 +431,6 @@ function showSetupInstructions() {
   const card = document.createElement('div');
   card.className = 'setup-card';
   card.innerHTML = `
-    <h3>⚙️ Enable Live Sync for All Users — 5 Easy Steps (Free)</h3>
-    <div class="setup-step"><div class="step-num">1</div><div class="step-text">Go to <strong><a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent2)">console.firebase.google.com</a></strong> and sign in with your Google account</div></div>
-    <div class="setup-step"><div class="step-num">2</div><div class="step-text">Click <strong>"Create a project"</strong>, name it <code>findit-app</code>, click Continue → Continue → Create</div></div>
-    <div class="setup-step"><div class="step-num">3</div><div class="step-text">In your project, click <strong>"Web" (&lt;/&gt;)</strong> icon → Register app → Copy the <code>firebaseConfig</code> object</div></div>
-    <div class="setup-step"><div class="step-num">4</div><div class="step-text">In the left menu, go to <strong>Build → Firestore Database → Create database → Start in test mode → Enable</strong></div></div>
-    <div class="setup-step"><div class="step-num">5</div><div class="step-text">Open this HTML file, find the <code>firebaseConfig</code> near line 320, and <strong>replace the placeholder values</strong> with your real config. Save & re-upload to GitHub.</div></div>
-    <div style="margin-top:1rem;padding:0.8rem;background:rgba(16,185,129,0.08);border-radius:8px;font-size:0.85rem;color:var(--found)">✅ Once done, all reports will save permanently and be visible to everyone in real time — for free!</div>`;
   hero.insertAdjacentElement('afterend', card);
 }
 
