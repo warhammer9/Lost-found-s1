@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FindIt — Lost & Found Community</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;
+  --surface:#111827;
+  --surface2:#1a2235;
+  --border:#1f2d45;
+  --border2:#2a3a55;
+  --text:#e8edf5;
+  --muted:#6b7a99;
+  --accent:#3b82f6;
+  --accent2:#60a5fa;
+  --found:#10b981;
+  --lost:#f59e0b;
+  --danger:#ef4444;
+  --glow:rgba(59,130,246,0.15);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* NOISE OVERLAY */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
+}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,14,26,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+}
+.header-inner{max-width:1300px;margin:0 auto;display:flex;align-items:center;gap:2rem;height:64px}
+.logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.logo-text{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text)}
+.logo-text span{color:var(--accent)}
+nav{display:flex;gap:0.2rem;flex:1}
+nav button{
+  background:none;border:none;color:var(--muted);
+  font-family:'Instrument Sans',sans-serif;font-size:0.88rem;font-weight:500;
+  padding:0.4rem 0.9rem;border-radius:8px;cursor:pointer;transition:all .2s;
+}
+nav button:hover{background:var(--surface2);color:var(--text)}
+nav button.active{background:var(--surface2);color:var(--accent)}
+.header-actions{display:flex;gap:0.6rem;margin-left:auto}
+.btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.5rem 1.1rem;border-radius:10px;font-family:'Instrument Sans',sans-serif;
+  font-size:0.88rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;
+}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 20px rgba(59,130,246,0.3)}
+.btn-primary:hover{background:#2563eb;box-shadow:0 0 30px rgba(59,130,246,0.5);transform:translateY(-1px)}
+.btn-success{background:var(--found);color:#fff;box-shadow:0 0 20px rgba(16,185,129,0.3)}
+.btn-success:hover{background:#059669;transform:translateY(-1px)}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.8rem}
+
+/* HERO */
+.hero{
+  position:relative;text-align:center;padding:5rem 2rem 4rem;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.12) 0%, transparent 70%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);
+  padding:0.3rem 0.9rem;border-radius:100px;font-size:0.78rem;font-weight:600;
+  color:var(--accent2);letter-spacing:0.04em;margin-bottom:1.5rem;
+}
+.pulse{width:7px;height:7px;background:var(--found);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.4)}}
+.hero h1{
+  font-family:'Syne',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);
+  font-weight:800;line-height:1.1;letter-spacing:-0.02em;margin-bottom:1rem;
+}
+.hero h1 .grad{
+  background:linear-gradient(135deg,var(--accent),#a78bfa,var(--found));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:560px;margin:0 auto 2.5rem;line-height:1.7}
+.hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.stats-row{
+  display:flex;justify-content:center;gap:3rem;margin-top:3.5rem;flex-wrap:wrap;
+  padding-top:2.5rem;border-top:1px solid var(--border);max-width:700px;margin-left:auto;margin-right:auto;
+}
+.stat{text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--text)}
+.stat-label{font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:0.2rem}
+
+/* PAGE SYSTEM */
+.page{display:none;max-width:1300px;margin:0 auto;padding:2rem}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:wrap;gap:1rem}
+.section-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700}
+.section-title span{color:var(--accent)}
+
+/* FILTERS */
+.filters{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.filter-btn{
+  padding:0.4rem 1rem;border-radius:100px;font-size:0.82rem;font-weight:500;
+  border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;
+}
+.filter-btn:hover,.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.filter-btn.found-filter.active{background:var(--found);border-color:var(--found)}
+.filter-btn.lost-filter.active{background:var(--lost);border-color:var(--lost)}
+
+/* SEARCH */
+.search-box{
+  display:flex;gap:0.6rem;margin-bottom:1.5rem;
+}
+.search-box input{
+  flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  padding:0.65rem 1rem;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:0.9rem;
+  outline:none;transition:border-color .2s;
+}
+.search-box input:focus{border-color:var(--accent)}
+.search-box input::placeholder{color:var(--muted)}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem}
+
+/* ITEM CARD */
+.item-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;transition:all .25s;cursor:pointer;position:relative;
+}
+.item-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+.card-img{
+  width:100%;height:180px;object-fit:cover;
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;
+  font-size:3rem;border-bottom:1px solid var(--border);
+}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-body{padding:1.2rem}
+.card-badges{display:flex;gap:0.4rem;margin-bottom:0.7rem;flex-wrap:wrap}
+.badge{
+  padding:0.2em 0.65em;border-radius:100px;font-size:0.72rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em;
+}
+.badge-lost{background:rgba(245,158,11,0.15);color:var(--lost);border:1px solid rgba(245,158,11,0.3)}
+.badge-found{background:rgba(16,185,129,0.15);color:var(--found);border:1px solid rgba(16,185,129,0.3)}
+.badge-cat{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.badge-resolved{background:rgba(16,185,129,0.1);color:var(--found)}
+.card-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:0.4rem;line-height:1.3}
+.card-desc{font-size:0.84rem;color:var(--muted);line-height:1.5;margin-bottom:0.8rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:var(--muted)}
+.card-meta .location{display:flex;align-items:center;gap:0.3rem}
+.card-replies{
+  display:flex;align-items:center;gap:0.3rem;font-size:0.78rem;
+  color:var(--accent2);background:rgba(59,130,246,0.08);padding:0.2rem 0.6rem;border-radius:100px;
+}
+
+/* FORM */
+.form-container{max-width:780px;margin:0 auto}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem}
+.form-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:0.4rem}
+.form-subtitle{color:var(--muted);font-size:0.9rem;margin-bottom:2rem}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:2rem}
+.type-btn{
+  padding:1rem;border-radius:12px;border:2px solid var(--border);background:transparent;
+  color:var(--muted);cursor:pointer;font-family:'Instrument Sans',sans-serif;
+  font-size:0.95rem;font-weight:600;transition:all .2s;text-align:center;
+}
+.type-btn .type-icon{font-size:1.5rem;display:block;margin-bottom:0.3rem}
+.type-btn.selected-lost{border-color:var(--lost);background:rgba(245,158,11,0.08);color:var(--lost)}
+.type-btn.selected-found{border-color:var(--found);background:rgba(16,185,129,0.08);color:var(--found)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.form-grid.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:0.45rem}
+.form-group label{font-size:0.85rem;font-weight:600;color:var(--text)}
+.form-group label span{color:var(--danger);margin-left:2px}
+.form-group input,
+.form-group select,
+.form-group textarea{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:10px;
+  padding:0.65rem 0.9rem;color:var(--text);font-family:'Instrument Sans',sans-serif;
+  font-size:0.9rem;outline:none;transition:border-color .2s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.form-group select option{background:var(--surface2)}
+.form-group textarea{resize:vertical;min-height:100px}
+.photo-upload{
+  border:2px dashed var(--border2);border-radius:12px;padding:2rem;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;
+}
+.photo-upload:hover{border-color:var(--accent);background:rgba(59,130,246,0.05)}
+.photo-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.upload-icon{font-size:2rem;margin-bottom:0.5rem}
+.upload-text{font-size:0.88rem;color:var(--muted)}
+.upload-text strong{color:var(--accent)}
+.photo-previews{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem}
+.photo-preview{
+  width:80px;height:80px;border-radius:8px;object-fit:cover;
+  border:2px solid var(--border2);position:relative;overflow:hidden;
+}
+.photo-preview-wrap{position:relative;width:80px;height:80px}
+.photo-preview-wrap img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:2px solid var(--border2)}
+.photo-preview-wrap .remove-photo{
+  position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;
+  border:none;border-radius:50%;width:20px;height:20px;font-size:0.7rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.form-submit{margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.8rem}
+.char-count{font-size:0.75rem;color:var(--muted);text-align:right;margin-top:0.2rem}
+
+/* DETAIL MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(5,8,16,0.9);
+  z-index:200;display:flex;align-items:center;justify-content:center;
+  padding:1rem;opacity:0;visibility:hidden;transition:all .3s;
+}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  max-width:700px;width:100%;max-height:90vh;overflow-y:auto;
+  transform:scale(0.95) translateY(20px);transition:transform .3s;
+}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-header{padding:1.5rem 1.8rem 0}
+.modal-close{
+  float:right;background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);width:32px;height:32px;border-radius:8px;
+  font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.modal-close:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.modal-photos{display:flex;gap:0.5rem;padding:1rem 1.8rem;overflow-x:auto}
+.modal-photo{
+  min-width:160px;height:160px;border-radius:10px;object-fit:cover;
+  background:var(--surface2);border:1px solid var(--border);display:flex;
+  align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;overflow:hidden;
+}
+.modal-photo img{width:100%;height:100%;object-fit:cover}
+.modal-body{padding:0 1.8rem 1.8rem}
+.modal-body h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:0.8rem;line-height:1.2}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin:1.2rem 0}
+.detail-item{background:var(--surface2);border-radius:10px;padding:0.8rem 1rem}
+.detail-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.3rem}
+.detail-value{font-size:0.92rem;font-weight:600}
+.desc-box{background:var(--surface2);border-radius:10px;padding:1rem;font-size:0.9rem;color:var(--muted);line-height:1.7;margin:1rem 0}
+
+/* REPLIES */
+.replies-section{border-top:1px solid var(--border);padding-top:1.2rem;margin-top:1rem}
+.replies-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem}
+.reply-count{background:var(--accent);color:#fff;border-radius:100px;font-size:0.72rem;padding:0.1em 0.5em}
+.reply-item{
+  background:var(--surface2);border-radius:12px;padding:1rem;margin-bottom:0.7rem;
+  border-left:3px solid var(--border2);transition:border-color .2s;
+}
+.reply-item.is-found{border-left-color:var(--found)}
+.reply-item.is-info{border-left-color:var(--accent)}
+.reply-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem}
+.reply-author{font-weight:600;font-size:0.88rem}
+.reply-time{font-size:0.75rem;color:var(--muted)}
+.reply-text{font-size:0.88rem;color:var(--muted);line-height:1.6}
+.reply-badge{
+  font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  padding:0.2em 0.6em;border-radius:100px;margin-top:0.5rem;display:inline-block;
+}
+.found-badge{background:rgba(16,185,129,0.15);color:var(--found)}
+.info-badge{background:rgba(59,130,246,0.15);color:var(--accent2)}
+.reply-form{margin-top:1rem}
+.reply-type-row{display:flex;gap:0.5rem;margin-bottom:0.7rem}
+.rtype-btn{
+  padding:0.3rem 0.8rem;border-radius:100px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);font-size:0.8rem;cursor:pointer;transition:all .2s;
+}
+.rtype-btn.active-found{border-color:var(--found);background:rgba(16,185,129,0.1);color:var(--found)}
+.rtype-btn.active-info{border-color:var(--accent);background:rgba(59,130,246,0.1);color:var(--accent2)}
+.reply-input-row{display:flex;gap:0.6rem}
+.reply-input-row input{
+  flex:1;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;padding:0.6rem 0.9rem;color:var(--text);
+  font-family:'Instrument Sans',sans-serif;font-size:0.88rem;outline:none;transition:border-color .2s;
+}
+.reply-input-row input:focus{border-color:var(--accent)}
+.reply-input-row input::placeholder{color:var(--muted)}
+
+/* COMMUNITY */
+.community-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem}
+.community-post{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:1.5rem;transition:all .2s;
+}
+.community-post:hover{border-color:var(--border2);transform:translateY(-2px)}
+.post-header{display:flex;align-items:center;gap:0.8rem;margin-bottom:1rem}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#a78bfa);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;color:#fff;flex-shrink:0;
+}
+.post-author{font-weight:600;font-size:0.9rem}
+.post-time{font-size:0.75rem;color:var(--muted)}
+.post-text{font-size:0.9rem;color:var(--muted);line-height:1.6;margin-bottom:1rem}
+.post-actions{display:flex;gap:0.5rem}
+.post-action{
+  display:flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;
+  border-radius:8px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:0.8rem;cursor:pointer;transition:all .2s;
+}
+.post-action:hover{border-color:var(--accent);color:var(--accent)}
+.post-action.liked{border-color:var(--danger);color:var(--danger);background:rgba(239,68,68,0.08)}
+.community-input-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;
+}
+.community-input-row{display:flex;gap:0.8rem;align-items:flex-start}
+.community-input-row textarea{
+  flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;
+  padding:0.7rem 0.9rem;color:var(--text);font-family:'Instrument Sans',sans-serif;
+  font-size:0.9rem;outline:none;resize:none;min-height:80px;transition:border-color .2s;
+}
+.community-input-row textarea:focus{border-color:var(--accent)}
+.community-input-row textarea::placeholder{color:var(--muted)}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:2rem;right:2rem;z-index:999;display:flex;flex-direction:column;gap:0.6rem}
+.toast{
+  background:var(--surface);border:1px solid var(--border2);border-radius:12px;
+  padding:0.9rem 1.2rem;min-width:260px;display:flex;align-items:center;gap:0.7rem;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  animation:slideIn .3s ease;font-size:0.88rem;
+}
+.toast.success{border-left:4px solid var(--found)}
+.toast.info{border-left:4px solid var(--accent)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{to{transform:translateX(110%);opacity:0}}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-state .empty-icon{font-size:3.5rem;margin-bottom:1rem}
+.empty-state h3{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:0.5rem}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header-inner{gap:0.8rem}
+  nav{display:none}
+  .form-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .hero h1{font-size:2.2rem}
+  .stats-row{gap:1.5rem}
+  .modal-photos{padding:0.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#" onclick="showPage('home')">
+      <div class="logo-icon">🔍</div>
+      <div class="logo-text">Find<span>It</span></div>
+    </a>
+    <nav>
+      <button onclick="showPage('home')" id="nav-home" class="active">Home</button>
+      <button onclick="showPage('feed')" id="nav-feed">Lost & Found</button>
+      <button onclick="showPage('community')" id="nav-community">Community</button>
+    </nav>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="showPage('report');setType('lost')">📢 Report Lost</button>
+      <button class="btn btn-success" onclick="showPage('report');setType('found')">✅ I Found Something</button>
+    </div>
+  </div>
+</header>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════ HOME ══════════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-badge"><div class="pulse"></div>Live Community · 2,847 members</div>
+    <h1>Reunite People With<br/><span class="grad">What They've Lost</span></h1>
+    <p>A trusted community platform to report lost items, share found belongings, and help each other across the city.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" style="font-size:1rem;padding:0.8rem 1.8rem" onclick="showPage('report');setType('lost')">📢 Report a Lost Item</button>
+      <button class="btn btn-success" style="font-size:1rem;padding:0.8rem 1.8rem" onclick="showPage('report');setType('found')">✅ I Found Something</button>
+      <button class="btn btn-ghost" style="font-size:1rem;padding:0.8rem 1.8rem" onclick="showPage('feed')">Browse All Items →</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="statLost">0</div><div class="stat-label">Items Lost</div></div>
+      <div class="stat"><div class="stat-num" id="statFound">0</div><div class="stat-label">Items Found</div></div>
+      <div class="stat"><div class="stat-num" id="statResolved">0</div><div class="stat-label">Reunited ✓</div></div>
+      <div class="stat"><div class="stat-num">2,847</div><div class="stat-label">Members</div></div>
+    </div>
+  </div>
+  <!-- Recent items preview on home -->
+  <div style="max-width:1300px;margin:0 auto;padding:0 2rem 3rem">
+    <div class="section-header">
+      <div class="section-title">Recent <span>Listings</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="showPage('feed')">View All →</button>
+    </div>
+    <div class="cards-grid" id="homeGrid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ FEED ══════════════════════════ -->
+<div id="page-feed" class="page">
+  <div class="section-header">
+    <div class="section-title">Lost & <span>Found Feed</span></div>
+    <div style="display:flex;gap:0.6rem">
+      <button class="btn btn-ghost btn-sm" onclick="showPage('report');setType('lost')">📢 Report Lost</button>
+      <button class="btn btn-success btn-sm" onclick="showPage('report');setType('found')">✅ Found Item</button>
+    </div>
+  </div>
+  <div class="search-box">
+    <input type="text" placeholder="🔍  Search items, locations, categories…" id="feedSearch" oninput="renderFeed()"/>
+  </div>
+  <div class="filters" id="feedFilters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn lost-filter" onclick="setFilter('lost',this)">😢 Lost</button>
+    <button class="filter-btn found-filter" onclick="setFilter('found',this)">🎉 Found</button>
+    <button class="filter-btn" onclick="setFilter('Electronics',this)">📱 Electronics</button>
+    <button class="filter-btn" onclick="setFilter('Pets',this)">🐾 Pets</button>
+    <button class="filter-btn" onclick="setFilter('Wallet/ID',this)">💳 Wallet/ID</button>
+    <button class="filter-btn" onclick="setFilter('Keys',this)">🔑 Keys</button>
+    <button class="filter-btn" onclick="setFilter('Bag/Luggage',this)">🎒 Bag</button>
+    <button class="filter-btn" onclick="setFilter('Jewelry',this)">💍 Jewelry</button>
+    <button class="filter-btn" onclick="setFilter('Clothing',this)">👕 Clothing</button>
+  </div>
+  <div class="cards-grid" id="feedGrid"></div>
+</div>
+
+<!-- ══════════════════════════ REPORT ══════════════════════════ -->
+<div id="page-report" class="page">
+  <div class="form-container">
+    <div class="form-card">
+      <div class="form-title">Submit a Report</div>
+      <div class="form-subtitle">Fill in the details below. The more detail you provide, the better the chances of a reunion.</div>
+
+      <!-- Type Toggle -->
+      <div class="type-toggle">
+        <button class="type-btn" id="btn-lost" onclick="setType('lost')">
+          <span class="type-icon">😢</span>I Lost Something
+        </button>
+        <button class="type-btn" id="btn-found" onclick="setType('found')">
+          <span class="type-icon">🎉</span>I Found Something
+        </button>
+      </div>
+
+      <!-- Name & Contact -->
+      <div class="form-grid" style="margin-bottom:1.2rem">
+        <div class="form-group">
+          <label>Your Name <span>*</span></label>
+          <input type="text" id="f-name" placeholder="Full name"/>
+        </div>
+        <div class="form-group">
+          <label>Contact Info <span>*</span></label>
+          <input type="text" id="f-contact" placeholder="Email or phone"/>
+        </div>
+      </div>
+
+      <!-- Item Details -->
+      <div class="form-grid" style="margin-bottom:1.2rem">
+        <div class="form-group">
+          <label>Item Name <span>*</span></label>
+          <input type="text" id="f-item" placeholder="e.g. Blue iPhone 14"/>
+        </div>
+        <div class="form-group">
+          <label>Category <span>*</span></label>
+          <select id="f-cat">
+            <option value="">Select category…</option>
+            <option>Electronics</option>
+            <option>Wallet/ID</option>
+            <option>Keys</option>
+            <option>Bag/Luggage</option>
+            <option>Pets</option>
+            <option>Jewelry</option>
+            <option>Clothing</option>
+            <option>Documents</option>
+            <option>Toy/Kids</option>
+            <option>Sports Equipment</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:1.2rem">
+        <div class="form-group">
+          <label>Location <span>*</span></label>
+          <input type="text" id="f-location" placeholder="e.g. Central Park, NY"/>
+        </div>
+        <div class="form-group">
+          <label>Date <span>*</span></label>
+          <input type="date" id="f-date"/>
+        </div>
+      </div>
+
+      <div class="form-group form-grid full" style="margin-bottom:1.2rem">
+        <div class="form-group">
+          <label>Description <span>*</span></label>
+          <textarea id="f-desc" maxlength="500" placeholder="Describe the item in detail — color, size, distinguishing marks, serial numbers…" oninput="document.getElementById('descCount').textContent=this.value.length+'/500'"></textarea>
+          <div class="char-count" id="descCount">0/500</div>
+        </div>
+      </div>
+
+      <!-- Reward (lost only) -->
+      <div id="rewardRow" class="form-grid" style="margin-bottom:1.2rem;display:none">
+        <div class="form-group">
+          <label>Reward Offered (optional)</label>
+          <input type="text" id="f-reward" placeholder="e.g. $50 reward"/>
+        </div>
+      </div>
+
+      <!-- Photo Upload -->
+      <div class="form-group" style="margin-bottom:1.5rem">
+        <label>Photos (up to 5)</label>
+        <div class="photo-upload" id="photoUpload">
+          <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(event)"/>
+          <div class="upload-icon">📷</div>
+          <div class="upload-text"><strong>Click to upload</strong> or drag & drop photos</div>
+          <div class="upload-text" style="margin-top:0.3rem;font-size:0.78rem">JPG, PNG, GIF up to 10MB each</div>
+        </div>
+        <div class="photo-previews" id="photoPreviews"></div>
+      </div>
+
+      <div class="form-submit">
+        <button class="btn btn-ghost" onclick="resetForm()">Clear</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">Submit Report →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ COMMUNITY ══════════════════════════ -->
+<div id="page-community" class="page">
+  <div class="section-header">
+    <div class="section-title">Community <span>Board</span></div>
+    <div style="font-size:0.85rem;color:var(--muted)">Share tips, thank finders, ask for help</div>
+  </div>
+  <div class="community-input-card">
+    <div class="community-input-row">
+      <div class="avatar" id="myAvatar">Me</div>
+      <textarea id="postText" placeholder="Share a tip, say thank you, or post a general question…"></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:0.8rem;gap:0.6rem">
+      <select id="postTag" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted);padding:0.4rem 0.8rem;border-radius:8px;font-size:0.82rem;outline:none">
+        <option value="General">💬 General</option>
+        <option value="Tip">💡 Tip</option>
+        <option value="Gratitude">🙏 Gratitude</option>
+        <option value="Alert">🚨 Alert</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="addPost()">Post →</button>
+    </div>
+  </div>
+  <div class="community-grid" id="communityGrid"></div>
+</div>
+
+<!-- ══════════════════════════ DETAIL MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleModalClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modalBadges" style="padding-top:0.5rem"></div>
+    </div>
+    <div class="modal-photos" id="modalPhotos"></div>
+    <div class="modal-body">
+      <h2 id="modalTitle"></h2>
+      <div class="detail-grid" id="modalDetails"></div>
+      <div class="desc-box" id="modalDesc"></div>
+      <div class="replies-section">
+        <div class="replies-title">💬 Replies <span class="reply-count" id="replyCountBadge">0</span></div>
+        <div id="repliesList"></div>
+        <div class="reply-form">
+          <div style="font-size:0.82rem;font-weight:600;margin-bottom:0.5rem">Leave a reply:</div>
+          <div class="reply-type-row">
+            <button class="rtype-btn" id="rtype-found" onclick="setReplyType('found')">🎉 I Found It!</button>
+            <button class="rtype-btn" id="rtype-info" onclick="setReplyType('info')">ℹ️ I Have Info</button>
+            <button class="rtype-btn" id="rtype-general" onclick="setReplyType('general')">💬 General</button>
+          </div>
+          <div class="reply-input-row">
+            <input type="text" id="replyName" placeholder="Your name"/>
+            <input type="text" id="replyText" placeholder="Write your reply…" style="flex:2" onkeydown="if(event.key==='Enter')submitReply()"/>
+            <button class="btn btn-primary btn-sm" onclick="submitReply()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════ STATE ══════════════════════
+let currentPage = 'home';
+let feedFilter = 'all';
+let selectedType = 'lost';
+let replyType = 'general';
+let currentItemId = null;
+let photoFiles = [];
+
+let items = [
+  {
+    id: 1, type: 'lost', name: 'Black Leather Wallet', category: 'Wallet/ID',
+    location: 'Times Square, NYC', date: '2026-03-10',
+    desc: 'Black leather bifold wallet containing ID, credit cards, and about $40 cash. Has a small scratch on the front. Very important – my passport is inside.',
+    contact: 'john.doe@email.com', person: 'John D.', reward: '$100 reward',
+    photos: [], replies: [
+      { name: 'Mike T.', text: 'I saw someone turn in a wallet at the nearby Starbucks on 46th!', type: 'info', time: '2 hours ago' }
+    ], resolved: false
+  },
+  {
+    id: 2, type: 'found', name: 'Golden Retriever – No Collar', category: 'Pets',
+    location: 'Central Park, NYC', date: '2026-03-11',
+    desc: 'Found a friendly male golden retriever near the boathouse. He has no collar but seems well-trained and healthy. Currently safe with me.',
+    contact: 'sara.k@email.com', person: 'Sara K.', reward: '',
+    photos: [], replies: [
+      { name: 'James R.', text: 'That could be my neighbor\'s dog! Sending them your contact now.', type: 'info', time: '1 hour ago' }
+    ], resolved: false
+  },
+  {
+    id: 3, type: 'lost', name: 'AirPods Pro (White Case)', category: 'Electronics',
+    location: 'Grand Central Station', date: '2026-03-09',
+    desc: 'Lost my AirPods Pro in a white charging case. There is a small blue sticker on the lid. Last seen on the 4/5/6 train platform.',
+    contact: 'alex.m@email.com', person: 'Alex M.', reward: '$30',
+    photos: [], replies: [], resolved: false
+  },
+  {
+    id: 4, type: 'found', name: 'Set of Car Keys (Honda)', category: 'Keys',
+    location: 'Brooklyn Bridge Park', date: '2026-03-11',
+    desc: 'Found a Honda key fob with 4 other keys and a small Totoro keychain. Found on a bench near Pier 1.',
+    contact: 'lisa.p@email.com', person: 'Lisa P.', reward: '',
+    photos: [], replies: [], resolved: false
+  },
+  {
+    id: 5, type: 'lost', name: 'Blue Jansport Backpack', category: 'Bag/Luggage',
+    location: 'Columbia University Library', date: '2026-03-08',
+    desc: 'Left my navy blue Jansport backpack in the reading room on the 3rd floor. Contains laptop, notebooks, and a bottle of water. Name tag inside.',
+    contact: 'nina.chen@email.com', person: 'Nina C.', reward: '$50',
+    photos: [], replies: [], resolved: true
+  },
+  {
+    id: 6, type: 'lost', name: 'Diamond Engagement Ring', category: 'Jewelry',
+    location: 'Whole Foods, Union Square', date: '2026-03-07',
+    desc: 'Lost my engagement ring – platinum band with a 1.2ct round diamond. I think it slipped off while I was handling produce. Please help.',
+    contact: 'emma.w@email.com', person: 'Emma W.', reward: '$500 reward',
+    photos: [], replies: [
+      { name: 'Store Manager', text: 'Please come to our customer service desk with ID, we may have it in our lost & found.', type: 'found', time: '3 hours ago' }
+    ], resolved: false
+  }
+];
+
+let communityPosts = [
+  {
+    id: 1, author: 'Sarah M.', initials: 'SM', tag: 'Gratitude',
+    text: '🙏 Huge thank you to whoever found my laptop bag at Penn Station last week and turned it to MTA Lost & Found. You saved my work and sanity! This community is amazing.',
+    time: '2 hours ago', likes: 24, liked: false, comments: 5
+  },
+  {
+    id: 2, author: 'David K.', initials: 'DK', tag: 'Tip',
+    text: '💡 Pro tip: If you lose something on the NYC subway, file a report on the MTA website within 48 hours. Items are held at 34th St–Penn Station Lost & Found for 30 days. I got my phone back this way!',
+    time: '5 hours ago', likes: 87, liked: false, comments: 12
+  },
+  {
+    id: 3, author: 'Community Bot', initials: '🤖', tag: 'Alert',
+    text: '🚨 High activity area alert: Multiple reports of lost items near Union Square Farmers Market this weekend. If you\'re heading there, keep an eye on your belongings!',
+    time: '1 day ago', likes: 45, liked: false, comments: 8
+  },
+  {
+    id: 4, author: 'Priya L.', initials: 'PL', tag: 'General',
+    text: 'Question: Is there a WhatsApp group for the Brooklyn neighborhood? Would love to be added to something more real-time for local lost & found.',
+    time: '1 day ago', likes: 12, liked: false, comments: 19
+  }
+];
+
+// ══════════════════════ NAVIGATION ══════════════════════
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + page);
+  if (navBtn) navBtn.classList.add('active');
+  currentPage = page;
+  if (page === 'home') { renderHome(); updateStats(); }
+  if (page === 'feed') renderFeed();
+  if (page === 'community') renderCommunity();
+  window.scrollTo(0, 0);
+}
+
+// ══════════════════════ STATS ══════════════════════
+function updateStats() {
+  document.getElementById('statLost').textContent = items.filter(i => i.type === 'lost').length;
+  document.getElementById('statFound').textContent = items.filter(i => i.type === 'found').length;
+  document.getElementById('statResolved').textContent = items.filter(i => i.resolved).length;
+}
+
+// ══════════════════════ RENDER CARDS ══════════════════════
+function cardHTML(item) {
+  const emoji = {Electronics:'📱',Pets:'🐾','Wallet/ID':'💳',Keys:'🔑','Bag/Luggage':'🎒',Jewelry:'💍',Clothing:'👕',Documents:'📄',Other:'📦','Toy/Kids':'🧸','Sports Equipment':'⚽'}[item.category] || '📦';
+  const photoEl = item.photos && item.photos.length > 0
+    ? `<div class="card-img"><img src="${item.photos[0]}" alt="${item.name}"/></div>`
+    : `<div class="card-img">${emoji}</div>`;
+  return `
+    <div class="item-card" onclick="openModal(${item.id})">
+      ${photoEl}
+      <div class="card-body">
+        <div class="card-badges">
+          <span class="badge badge-${item.type}">${item.type === 'lost' ? '😢 Lost' : '🎉 Found'}</span>
+          <span class="badge badge-cat">${item.category}</span>
+          ${item.resolved ? '<span class="badge badge-resolved">✓ Resolved</span>' : ''}
+        </div>
+        <div class="card-title">${item.name}</div>
+        <div class="card-desc">${item.desc}</div>
+        <div class="card-meta">
+          <span class="location">📍 ${item.location}</span>
+          <span class="card-replies">💬 ${item.replies.length}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderHome() {
+  const recent = [...items].slice(-6).reverse();
+  const grid = document.getElementById('homeGrid');
+  grid.innerHTML = recent.length ? recent.map(cardHTML).join('') : '<div class="empty-state"><div class="empty-icon">📭</div><h3>No items yet</h3><p>Be the first to post!</p></div>';
+}
+
+function renderFeed() {
+  const q = (document.getElementById('feedSearch')?.value || '').toLowerCase();
+  let filtered = items;
+  if (feedFilter === 'lost') filtered = filtered.filter(i => i.type === 'lost');
+  else if (feedFilter === 'found') filtered = filtered.filter(i => i.type === 'found');
+  else if (!['all','lost','found'].includes(feedFilter)) filtered = filtered.filter(i => i.category === feedFilter);
+  if (q) filtered = filtered.filter(i =>
+    i.name.toLowerCase().includes(q) ||
+    i.desc.toLowerCase().includes(q) ||
+    i.location.toLowerCase().includes(q) ||
+    i.category.toLowerCase().includes(q)
+  );
+  const grid = document.getElementById('feedGrid');
+  grid.innerHTML = filtered.length
+    ? [...filtered].reverse().map(cardHTML).join('')
+    : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>No items found</h3><p>Try adjusting your filters or search.</p></div>`;
+}
+
+function setFilter(filter, el) {
+  feedFilter = filter;
+  document.querySelectorAll('#feedFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
+
+// ══════════════════════ FORM ══════════════════════
+function setType(type) {
+  selectedType = type;
+  document.getElementById('btn-lost').className = 'type-btn' + (type === 'lost' ? ' selected-lost' : '');
+  document.getElementById('btn-found').className = 'type-btn' + (type === 'found' ? ' selected-found' : '');
+  document.getElementById('rewardRow').style.display = type === 'lost' ? 'grid' : 'none';
+  document.getElementById('submitBtn').textContent = type === 'lost' ? 'Submit Lost Report →' : 'Submit Found Item →';
+}
+
+function handlePhotos(e) {
+  const files = Array.from(e.target.files);
+  const remaining = 5 - photoFiles.length;
+  files.slice(0, remaining).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      photoFiles.push(ev.target.result);
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  if (files.length > remaining) showToast('info', 'ℹ️ Max 5 photos allowed');
+}
+
+function renderPreviews() {
+  document.getElementById('photoPreviews').innerHTML = photoFiles.map((src, i) => `
+    <div class="photo-preview-wrap">
+      <img src="${src}" class="photo-preview"/>
+      <button class="remove-photo" onclick="removePhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removePhoto(i) {
+  photoFiles.splice(i, 1);
+  renderPreviews();
+}
+
+function submitReport() {
+  const name = document.getElementById('f-name').value.trim();
+  const contact = document.getElementById('f-contact').value.trim();
+  const item = document.getElementById('f-item').value.trim();
+  const cat = document.getElementById('f-cat').value;
+  const loc = document.getElementById('f-location').value.trim();
+  const date = document.getElementById('f-date').value;
+  const desc = document.getElementById('f-desc').value.trim();
+  if (!name || !contact || !item || !cat || !loc || !date || !desc) {
+    showToast('info', '⚠️ Please fill in all required fields');
+    return;
+  }
+  const newItem = {
+    id: Date.now(),
+    type: selectedType,
+    name: item, category: cat,
+    location: loc, date,
+    desc, contact, person: name,
+    reward: document.getElementById('f-reward').value.trim(),
+    photos: [...photoFiles],
+    replies: [], resolved: false
+  };
+  items.push(newItem);
+  showToast('success', `✅ Report submitted! Your ${selectedType} item has been posted.`);
+  resetForm();
+  setTimeout(() => showPage('feed'), 1200);
+}
+
+function resetForm() {
+  ['f-name','f-contact','f-item','f-location','f-desc','f-reward'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('f-cat').selectedIndex = 0;
+  document.getElementById('f-date').value = '';
+  photoFiles = [];
+  renderPreviews();
+  document.getElementById('descCount').textContent = '0/500';
+  setType('lost');
+}
+
+// ══════════════════════ MODAL ══════════════════════
+function openModal(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  currentItemId = id;
+  const emoji = {Electronics:'📱',Pets:'🐾','Wallet/ID':'💳',Keys:'🔑','Bag/Luggage':'🎒',Jewelry:'💍',Clothing:'👕',Documents:'📄',Other:'📦','Toy/Kids':'🧸','Sports Equipment':'⚽'}[item.category] || '📦';
+
+  document.getElementById('modalBadges').innerHTML = `
+    <span class="badge badge-${item.type}" style="font-size:0.85rem;padding:0.3em 0.8em">${item.type === 'lost' ? '😢 Lost' : '🎉 Found'}</span>
+    <span class="badge badge-cat" style="font-size:0.85rem;padding:0.3em 0.8em;margin-left:0.4rem">${item.category}</span>
+    ${item.resolved ? '<span class="badge badge-resolved" style="font-size:0.85rem;padding:0.3em 0.8em;margin-left:0.4rem">✓ Reunited</span>' : ''}`;
+
+  document.getElementById('modalPhotos').innerHTML = item.photos.length
+    ? item.photos.map(src => `<div class="modal-photo"><img src="${src}"/></div>`).join('')
+    : `<div class="modal-photo">${emoji}</div>`;
+
+  document.getElementById('modalTitle').textContent = item.name;
+
+  document.getElementById('modalDetails').innerHTML = `
+    <div class="detail-item"><div class="detail-label">📍 Location</div><div class="detail-value">${item.location}</div></div>
+    <div class="detail-item"><div class="detail-label">📅 Date</div><div class="detail-value">${item.date}</div></div>
+    <div class="detail-item"><div class="detail-label">👤 Reported By</div><div class="detail-value">${item.person}</div></div>
+    <div class="detail-item"><div class="detail-label">📞 Contact</div><div class="detail-value">${item.contact}</div></div>
+    ${item.reward ? `<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">💰 Reward</div><div class="detail-value" style="color:var(--lost)">${item.reward}</div></div>` : ''}`;
+
+  document.getElementById('modalDesc').textContent = item.desc;
+  renderReplies(item);
+  setReplyType('general');
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderReplies(item) {
+  const list = document.getElementById('repliesList');
+  document.getElementById('replyCountBadge').textContent = item.replies.length;
+  list.innerHTML = item.replies.length
+    ? item.replies.map(r => `
+      <div class="reply-item ${r.type === 'found' ? 'is-found' : r.type === 'info' ? 'is-info' : ''}">
+        <div class="reply-header">
+          <span class="reply-author">👤 ${r.name}</span>
+          <span class="reply-time">${r.time}</span>
+        </div>
+        <div class="reply-text">${r.text}</div>
+        ${r.type === 'found' ? '<span class="reply-badge found-badge">🎉 Found It!</span>' : ''}
+        ${r.type === 'info' ? '<span class="reply-badge info-badge">ℹ️ Has Info</span>' : ''}
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">No replies yet. Be the first to help!</div>';
+}
+
+function setReplyType(type) {
+  replyType = type;
+  document.querySelectorAll('.rtype-btn').forEach(b => b.className = 'rtype-btn');
+  document.getElementById('rtype-' + type).classList.add(type === 'found' ? 'active-found' : 'active-info');
+}
+
+function submitReply() {
+  const name = document.getElementById('replyName').value.trim();
+  const text = document.getElementById('replyText').value.trim();
+  if (!name || !text) { showToast('info', '⚠️ Please enter your name and message'); return; }
+  const item = items.find(i => i.id === currentItemId);
+  if (!item) return;
+  item.replies.push({ name, text, type: replyType, time: 'Just now' });
+  if (replyType === 'found') { item.resolved = true; showToast('success', '🎉 Amazing! This item may have been found!'); }
+  else showToast('success', '✅ Reply posted!');
+  document.getElementById('replyName').value = '';
+  document.getElementById('replyText').value = '';
+  renderReplies(item);
+  updateStats();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentItemId = null;
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ══════════════════════ COMMUNITY ══════════════════════
+function renderCommunity() {
+  const tagColors = { General: '#6b7a99', Tip: '#f59e0b', Gratitude: '#10b981', Alert: '#ef4444' };
+  const tagEmoji = { General: '💬', Tip: '💡', Gratitude: '🙏', Alert: '🚨' };
+  document.getElementById('communityGrid').innerHTML = [...communityPosts].reverse().map(p => `
+    <div class="community-post">
+      <div class="post-header">
+        <div class="avatar" style="background:linear-gradient(135deg,${stringToColor(p.author)},${stringToColor(p.author+'x')})">${p.initials}</div>
+        <div>
+          <div class="post-author">${p.author}
+            <span style="background:${tagColors[p.tag]}22;color:${tagColors[p.tag]};font-size:0.7rem;padding:0.1em 0.5em;border-radius:100px;margin-left:0.4rem;font-weight:700">${tagEmoji[p.tag]} ${p.tag}</span>
+          </div>
+          <div class="post-time">${p.time}</div>
+        </div>
+      </div>
+      <div class="post-text">${p.text}</div>
+      <div class="post-actions">
+        <button class="post-action ${p.liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">
+          ${p.liked ? '❤️' : '🤍'} ${p.likes}
+        </button>
+        <button class="post-action">💬 ${p.comments}</button>
+      </div>
+    </div>`).join('');
+}
+
+function stringToColor(str) {
+  const colors = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899'];
+  let hash = 0;
+  for (let c of str) hash = c.charCodeAt(0) + hash * 31;
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function toggleLike(id) {
+  const post = communityPosts.find(p => p.id === id);
+  if (!post) return;
+  post.liked = !post.liked;
+  post.likes += post.liked ? 1 : -1;
+  renderCommunity();
+}
+
+function addPost() {
+  const text = document.getElementById('postText').value.trim();
+  const tag = document.getElementById('postTag').value;
+  if (!text) { showToast('info', '⚠️ Please write something first'); return; }
+  communityPosts.push({
+    id: Date.now(), author: 'You', initials: 'Me', tag,
+    text, time: 'Just now', likes: 0, liked: false, comments: 0
+  });
+  document.getElementById('postText').value = '';
+  renderCommunity();
+  showToast('success', '✅ Post shared with the community!');
+}
+
+// ══════════════════════ TOAST ══════════════════════
+function showToast(type, msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// ══════════════════════ INIT ══════════════════════
+document.getElementById('f-date').valueAsDate = new Date();
+setType('lost');
+renderHome();
+updateStats();
+</script>
+</body>
+</html>
