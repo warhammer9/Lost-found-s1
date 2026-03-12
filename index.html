@@ -395,20 +395,7 @@ function listenPosts() {
   onSnapshot(query(collection(db,'posts'), orderBy('createdAt','desc')), snap => {
     postsCache = snap.docs.map(d => ({id:d.id,...d.data()}));
     if (document.getElementById('page-community').classList.contains('active')) renderCommunity();
-  });
-}
-
-// ── LOCAL MODE (fallback when Firebase not configured) ──
-function localMode() {
-  setStatus(false);
-  try { itemsCache = JSON.parse(localStorage.getItem('fi_items')||'[]'); } catch(e){itemsCache=[];}
-  try { postsCache = JSON.parse(localStorage.getItem('fi_posts')||'[]'); } catch(e){postsCache=[];}
-  if (!itemsCache.length) seedDemo();
-  renderHome(); renderFeed(); renderCommunity(); updateStats();
-  showSetupInstructions();
-}
-
-function seedDemo() {
+  }); 
   itemsCache = [
     {id:'d1',type:'lost',name:'Black Leather Wallet',category:'Wallet/ID',location:'Times Square, NYC',date:'2026-03-10',desc:'Bifold wallet with ID, cards, $40 cash. Has a small scratch on the front.',contact:'john@email.com',person:'John D.',reward:'$100',photos:[],replies:[{name:'Mike T.',text:'Check the Starbucks on 46th!',type:'info',time:'2h ago'}],resolved:false,createdAt:Date.now()-3600000},
     {id:'d2',type:'found',name:'Golden Retriever – No Collar',category:'Pets',location:'Central Park, NYC',date:'2026-03-11',desc:'Friendly male golden retriever near the boathouse. Safe with me.',contact:'sara@email.com',person:'Sara K.',reward:'',photos:[],replies:[],resolved:false,createdAt:Date.now()-7200000},
